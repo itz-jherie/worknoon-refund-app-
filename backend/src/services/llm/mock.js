@@ -26,7 +26,7 @@ export async function classifyWithMock({ message, order, customer, policyContext
   let category = "UNCLEAR";
   if (injectionAttemptDetected) {
     category = "SUSPICIOUS";
-  } else if (/damage|broken|smashed|crushed|shattered|cracked|defective|leaking/.test(text)) {
+  } else if (/damage|broken|smashed|crushed|shattered|cracked|defective|leaking|stopped working|not working|doesn'?t work|does not work|won'?t turn on/.test(text)) {
     category = "DAMAGED_ITEM";
   } else if (/wrong item|wrong size|wrong color|wrong colour|not what i ordered|sent me the/.test(text)) {
     category = "INCORRECT_ITEM";
