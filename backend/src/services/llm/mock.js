@@ -23,6 +23,11 @@ export async function classifyWithMock({ message, order, customer, policyContext
   ];
   const injectionAttemptDetected = injectionPatterns.some((p) => p.test(text));
 
+  // Greetings / small talk are not refund requests — respond conversationally
+  const isRefundRequest = !injectionAttemptDetected &&
+    !(/^(hi|hello|hey|yo|good (morning|afternoon|evening)|thanks|thank you|greetings)\b/i.test(text.trim()) && text.trim().split(/\s+/).length <= 4) &&
+    !(/^(how are you|what'?s up|who are you|what can you do|help me understand)\b/i.test(text.trim()));
+
   let category = "UNCLEAR";
   if (injectionAttemptDetected) {
     category = "SUSPICIOUS";
@@ -48,7 +53,21 @@ export async function classifyWithMock({ message, order, customer, policyContext
           : "ESCALATED";
 
   const words = text.split(/\s+/).filter(Boolean).slice(0, 12).join(" ");
+  if (!isRefundRequest) {
+    return {
+      isRefundRequest: false,
+      category: "UNCLEAR",
+      recommendedOutcome: "ESCALATED",
+      confidence: 0.6,
+      evidenceQuote: words ? `"${words}"` : "",
+      injectionAttemptDetected,
+      reasoningSummary: "Mock classifier: message is not a refund request (greeting/small talk).",
+      customerResponseDraft:
+        "Hi there! 👋 I'm the RefundFlow assistant. I can help you with refunds and returns — just describe the issue with your order (e.g., damaged, wrong item) and I'll take care of the rest.",
+    };
+  }
   return {
+    isRefundRequest: true,
     category,
     recommendedOutcome,
     confidence: 0.6,

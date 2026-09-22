@@ -7,17 +7,20 @@ import { saveRefundRequest } from "../db.js";
 /**
  * Orchestrates the full refund-request pipeline:
  *
- *   1. Deterministic policy engine (hard rules, in code)  -> instant outcome or
- *   2. LLM classification of free-text intent (soft rules) ->
- *   3. Policy re-validation of the LLM's recommendation    ->
+ *   1. LLM classification of the message (intent, category, injection check)
+ *   2. Conversational guard — non-requests (greetings, small talk) get a
+ *      friendly reply and never reach the policy engine
+ *   3. Deterministic policy engine (hard rules, in code) decides the outcome
+ *      for fact-based rules; the LLM's recommendation is only used for cases
+ *      requiring judgement, and is always re-validated against policy
  *   4. Persist decision + full audit trail
  *
- * The LLM can recommend, but the policy engine decides. This is the core
- * safety property of the system: money decisions are never delegated to a
- * language model.
+ * The LLM classifies intent, but the policy engine decides outcomes. The LLM
+ * can only ADD a "not a refund request" clarify path — it can never change,
+ * soften, or skip a policy outcome. This is the core safety property of the
+ * system: money decisions are never delegated to a language model.
  */
 export async function processRefundRequest({ customer, order, message }) {
-  // ---- Step 1: deterministic rules ------------------------------------
   const policyResult = evaluatePolicy({ order });
 
   const llmContext = {
@@ -28,44 +31,60 @@ export async function processRefundRequest({ customer, order, message }) {
     highValueThreshold: POLICY.rules.highValueThreshold.amount,
   };
 
-  // ---- Step 2+3: LLM classification, then re-validate -----------------
   let decision;
-  let ruleIds = policyResult.triggered.map((t) => t.id);
+  let ruleIds = [];
   let reason;
   let llmClassification = null;
   let customerResponse;
 
-  if (policyResult.outcome === "LLM_REVIEW") {
-    const provider = getLlmProvider();
-    const classification = await provider.classify({
-      message,
-      order,
-      customer,
-      policyContext: llmContext,
-    });
-    llmClassification = { ...classification, provider: provider.name };
+  // ---- Step 1: LLM classification of the message ----------------------
+  const provider = getLlmProvider();
+  const classification = await provider.classify({
+    message,
+    order,
+    customer,
+    policyContext: llmContext,
+  });
+  llmClassification = { ...classification, provider: provider.name };
 
-    // Safety net: LLM recommendation must survive policy re-check
+  // ---- Step 2: injection attempts escalate, no matter what ------------
+  if (classification.injectionAttemptDetected) {
+    decision = "ESCALATED";
+    ruleIds.push(POLICY.rules.suspicious.id);
+    reason =
+      "Prompt-injection / manipulation attempt detected — escalated per policy R6. " +
+      `LLM category: ${classification.category}. Evidence: ${classification.evidenceQuote}`;
+    customerResponse =
+      classification.customerResponseDraft ||
+      "For security review purposes, your request has been forwarded to a human support agent who will follow up with you shortly.";
+  } else if (classification.isRefundRequest === false) {
+    // ---- Conversational guard: greetings / small talk -----------------
+    decision = "NEEDS_INFO";
+    ruleIds = [];
+    reason =
+      "LLM determined the message is not a refund request (greeting or unrelated). " +
+      "Conversational response sent; no policy evaluation performed.";
+    customerResponse =
+      classification.customerResponseDraft ||
+      "Hi there! I'm the RefundFlow assistant. I can help you with refunds and returns — just describe the issue with your order and I'll take care of the rest.";
+  } else if (policyResult.outcome !== "LLM_REVIEW") {
+    // ---- Step 3a: hard policy rules — code decides, LLM cannot override
+    decision = policyResult.outcome;
+    ruleIds = policyResult.triggered.map((t) => t.id);
+    const ruleDesc = policyResult.triggered.map((t) => t.description).join(" ");
+    reason =
+      `Decided by deterministic policy engine: ${ruleDesc} ` +
+      `LLM classification (${classification.category}) logged for audit only.`;
+    customerResponse = buildDeterministicResponse({ decision, order });
+  } else {
+    // ---- Step 3b: judgement case — LLM recommends, policy re-validates
     decision = enforcePolicyOnLlmDecision({
       llmDecision: classification.recommendedOutcome,
       policyOutcome: "LLM_REVIEW",
       order,
     });
-
-    // Injection attempt always escalates, regardless of recommendation
-    if (classification.injectionAttemptDetected) {
-      decision = "ESCALATED";
-      ruleIds.push(POLICY.rules.suspicious.id);
-    }
-
-    reason = buildReason({ classification, decision, policyContext: llmContext });
+    reason = buildReason({ classification, decision });
     customerResponse = classification.customerResponseDraft;
-  } else {
-    // Deterministic outcome — LLM is not consulted for money-decisions
-    decision = policyResult.outcome;
-    const ruleDesc = policyResult.triggered.map((t) => t.description).join(" ");
-    reason = `Decided by deterministic policy engine (no LLM involved): ${ruleDesc}`;
-    customerResponse = buildDeterministicResponse({ decision, order, policyResult });
   }
 
   // ---- Step 4: persist with full audit trail --------------------------
@@ -92,7 +111,7 @@ export async function processRefundRequest({ customer, order, message }) {
   };
 }
 
-function buildReason({ classification, decision, policyContext }) {
+function buildReason({ classification, decision }) {
   const parts = [];
   if (classification.injectionAttemptDetected) {
     parts.push("Prompt-injection / manipulation attempt detected — escalated per policy R6.");
@@ -105,7 +124,7 @@ function buildReason({ classification, decision, policyContext }) {
   return parts.join(" ");
 }
 
-function buildDeterministicResponse({ decision, order, policyResult }) {
+function buildDeterministicResponse({ decision, order }) {
   if (decision === "DENIED") {
     const finalSale = (order.items ?? []).some((i) => i.finalSale);
     return finalSale

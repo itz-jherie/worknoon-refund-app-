@@ -133,11 +133,11 @@ export default function CustomerChat() {
 }
 
 function DecisionChip({ result }) {
-  const cls = { APPROVED: "approved", DENIED: "denied", ESCALATED: "escalated" }[result.decision];
+  const cls = { APPROVED: "approved", DENIED: "denied", ESCALATED: "escalated", NEEDS_INFO: "info" }[result.decision] || "info";
   return (
     <div className={`decision ${cls}`}>
-      <strong>{result.decision}</strong>
-      <span className="rules">{result.ruleIds.join(" · ")}</span>
+      <strong>{result.decision === "NEEDS_INFO" ? "👋 NOT A REFUND REQUEST" : result.decision}</strong>
+      <span className="rules">{(result.ruleIds ?? []).join(" · ")}</span>
     </div>
   );
 }

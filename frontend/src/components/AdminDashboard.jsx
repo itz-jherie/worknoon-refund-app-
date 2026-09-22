@@ -22,6 +22,7 @@ export default function AdminDashboard() {
     approved: requests.filter((r) => r.decision === "APPROVED").length,
     denied: requests.filter((r) => r.decision === "DENIED").length,
     escalated: requests.filter((r) => r.decision === "ESCALATED").length,
+    info: requests.filter((r) => r.decision === "NEEDS_INFO").length,
   };
 
   return (
@@ -32,6 +33,7 @@ export default function AdminDashboard() {
         <Stat label="Approved" value={stats.approved} cls="approved" />
         <Stat label="Denied" value={stats.denied} cls="denied" />
         <Stat label="Escalated" value={stats.escalated} cls="escalated" />
+        <Stat label="Chit-chat" value={stats.info} cls="info" />
       </div>
 
       <div className="split">
@@ -51,7 +53,9 @@ export default function AdminDashboard() {
                 <td>{r.customerName}</td>
                 <td>{r.orderId}</td>
                 <td>
-                  <span className={`pill ${r.decision.toLowerCase()}`}>{r.decision}</span>
+                  <span className={`pill ${r.decision === "NEEDS_INFO" ? "info" : r.decision.toLowerCase()}`}>
+                    {r.decision === "NEEDS_INFO" ? "NOT A REQUEST" : r.decision}
+                  </span>
                 </td>
                 <td className="rules">{(r.ruleIds ?? []).join(", ")}</td>
                 <td>{new Date(r.createdAt).toLocaleTimeString()}</td>

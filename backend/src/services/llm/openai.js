@@ -64,6 +64,7 @@ export async function classifyWithOpenAI({ message, order, customer, policyConte
 function sanitize(parsed) {
   const allowedCategories = ["DAMAGED_ITEM", "INCORRECT_ITEM", "NOT_AS_DESCRIBED", "CHANGE_OF_MIND", "SUSPICIOUS", "UNCLEAR"];
   return {
+    isRefundRequest: parsed.isRefundRequest !== false,
     category: allowedCategories.includes(parsed.category) ? parsed.category : "UNCLEAR",
     recommendedOutcome: ["APPROVED", "DENIED", "ESCALATED"].includes(parsed.recommendedOutcome)
       ? parsed.recommendedOutcome
