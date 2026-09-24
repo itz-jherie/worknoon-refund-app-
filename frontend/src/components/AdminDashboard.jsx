@@ -53,12 +53,13 @@ export default function AdminDashboard() {
               className={`filter-tab ${filter === f ? "active" : ""}`}
               onClick={() => setFilter(f)}
             >
-              {f === "NEEDS_INFO" ? "CHIT-CHAT" : f} ({stats[f]})
+              {f === "NEEDS_INFO" ? "CHIT-CHAT" : f}
+              <span className="count">{stats[f]}</span>
             </button>
           ))}
         </div>
         <div className="live">
-          <span className="live-dot" /> Live — auto-refresh 5s
+          <span className="live-dot" /> Auto-refresh 5s
         </div>
       </div>
 
@@ -128,9 +129,7 @@ function AuditPanel({ request: r }) {
   const conf = Math.round((llm.confidence ?? 0) * 100);
   return (
     <aside className="audit panel">
-      <h3>
-        🔍 Audit trail
-      </h3>
+      <h3>Audit trail</h3>
       <p className="meta">
         <span className="cell-ticket">{r.id}</span> · {r.customerName} · {r.orderId} ·{" "}
         {new Date(r.createdAt).toLocaleString()}
@@ -167,7 +166,7 @@ function AuditPanel({ request: r }) {
             </div>
             <div className="llm-cell">
               <span className="k">Injection detected</span>
-              <span className="v">{llm.injectionAttemptDetected ? "⚠️ YES" : "No"}</span>
+              <span className="v">{llm.injectionAttemptDetected ? "Yes" : "No"}</span>
             </div>
             <div className="llm-cell wide">
               <span className="k">Confidence — {conf}%</span>

@@ -149,17 +149,15 @@ export default function CustomerChat() {
       <section className="chat panel">
         {messages.length === 0 && !busy && (
           <div className="chat-empty">
-            <span className="big">↩</span>
-            Select a customer on the left, then describe your refund issue.
-            <br />
-            The AI will check the order against store policy and give you a decision.
+            Select a customer on the left, then describe your refund issue. The AI will check
+            the order against store policy and give you a decision.
           </div>
         )}
 
         {messages.map((m, i) => (
           <div key={i} className={`msg-row ${m.role}`}>
             <div className={`msg-avatar ${m.role}`}>
-              {m.role === "customer" ? "YOU" : m.role === "error" ? "!" : "AI"}
+              {m.role === "customer" ? "You" : m.role === "error" ? "!" : "AI"}
             </div>
             <div className={`bubble ${m.role}`}>
               <div>{m.text}</div>
@@ -176,9 +174,9 @@ export default function CustomerChat() {
             <div className="msg-avatar ai">AI</div>
             <div className="bubble typing">
               Checking the order against policy{" "}
-              <span className="typing-dot">●</span>
-              <span className="typing-dot">●</span>
-              <span className="typing-dot">●</span>
+              <span className="typing-dot">·</span>
+              <span className="typing-dot">·</span>
+              <span className="typing-dot">·</span>
             </div>
           </div>
         )}
@@ -202,10 +200,9 @@ export default function CustomerChat() {
 
 function DecisionChip({ result }) {
   const cls = { APPROVED: "approved", DENIED: "denied", ESCALATED: "escalated" }[result.decision] || "info";
-  const labels = { APPROVED: "✓ APPROVED", DENIED: "✗ DENIED", ESCALATED: "⚠ ESCALATED" };
   return (
     <div className={`decision ${cls}`}>
-      <span>{labels[result.decision] ?? result.decision}</span>
+      <span>{result.decision}</span>
       {(result.ruleIds ?? []).length > 0 && (
         <span className="rules">{result.ruleIds.join(" · ")}</span>
       )}

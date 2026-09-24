@@ -9,7 +9,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo">↩</span>
+          <span className="logo">RF</span>
           <div>
             <div className="brand-name">RefundFlow</div>
             <div className="brand-sub">AI-powered refund support</div>
@@ -17,10 +17,10 @@ export default function App() {
         </div>
         <nav className="segmented">
           <button className={view === "customer" ? "active" : ""} onClick={() => setView("customer")}>
-            💬 Customer Support
+            Customer Support
           </button>
           <button className={view === "admin" ? "active" : ""} onClick={() => setView("admin")}>
-            📊 Admin Dashboard
+            Admin Dashboard
           </button>
         </nav>
       </header>
