@@ -7,6 +7,8 @@ and returns **Approved / Denied / Escalated**, with a full audit trail in an adm
 
 Built as the Full Stack AI Integration Product Challenge for WORKNOON.
 
+**Source:** https://github.com/itz-jherie/worknoon-refund-app-
+
 ---
 
 ## Quick Start
