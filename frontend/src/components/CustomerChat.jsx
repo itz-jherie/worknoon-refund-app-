@@ -164,6 +164,9 @@ export default function CustomerChat() {
             <div className={`bubble ${m.role}`}>
               <div>{m.text}</div>
               {m.result && m.result.decision !== "NEEDS_INFO" && <DecisionChip result={m.result} />}
+              {m.result?.requestId && (
+                <div className="ticket-ref">Ticket {m.result.requestId}</div>
+              )}
             </div>
           </div>
         ))}

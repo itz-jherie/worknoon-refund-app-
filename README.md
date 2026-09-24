@@ -80,9 +80,11 @@ Then `docker compose up` again. Every other part of the system is unchanged.
    recommendation against the hard policy facts for judgement-based cases. Even
    if the model is convinced to "approve" a final-sale item, the outcome is
    forced back to DENIED.
-5. **Audit trail**: every message persists the customer message, triggered rule
-   IDs, the LLM's classification/confidence/evidence, the final decision, and the
-   response sent to the customer.
+5. **Audit trail**: every message persists a human-readable **ticket number**
+   (`RFD-2026-0001`, backed by a Postgres sequence so concurrent requests never
+   collide), the customer message, triggered rule IDs, the LLM's
+   classification/confidence/evidence, the final decision, and the response sent
+   to the customer.
 
 ## How the AI Integration Works
 
@@ -115,7 +117,7 @@ Then `docker compose up` again. Every other part of the system is unchanged.
 | GET | `/api/customers` | Customer directory |
 | GET | `/api/customers/:id` | Customer + order history |
 | POST | `/api/refunds` | Submit refund request → full pipeline |
-| GET | `/api/refunds/:id` | Single decision + audit trail |
+| GET | `/api/refunds/:id` | Single decision + audit trail (ticket ID, e.g. `RFD-2026-0001`) |
 | GET | `/api/policy` | Current policy definition |
 | GET | `/api/admin/requests` | Dashboard feed (audit log) |
 

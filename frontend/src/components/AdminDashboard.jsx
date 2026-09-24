@@ -67,6 +67,7 @@ export default function AdminDashboard() {
           <table>
             <thead>
               <tr>
+                <th>Ticket</th>
                 <th>Customer</th>
                 <th>Order</th>
                 <th>Decision</th>
@@ -81,6 +82,7 @@ export default function AdminDashboard() {
                   onClick={() => setSelected(r)}
                   className={selected?.id === r.id ? "selected" : ""}
                 >
+                  <td className="cell-ticket">{r.id}</td>
                   <td>{r.customerName}</td>
                   <td className="cell-muted">{r.orderId}</td>
                   <td>
@@ -94,7 +96,7 @@ export default function AdminDashboard() {
               ))}
               {visible.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="empty-table">
+                  <td colSpan={6} className="empty-table">
                     No requests in this view — submit one from the Customer Support tab.
                   </td>
                 </tr>
@@ -130,7 +132,8 @@ function AuditPanel({ request: r }) {
         🔍 Audit trail
       </h3>
       <p className="meta">
-        {r.customerName} · {r.orderId} · {new Date(r.createdAt).toLocaleString()}
+        <span className="cell-ticket">{r.id}</span> · {r.customerName} · {r.orderId} ·{" "}
+        {new Date(r.createdAt).toLocaleString()}
       </p>
 
       <h4>Customer message</h4>

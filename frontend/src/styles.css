@@ -414,6 +414,19 @@ body {
 .req-table tbody tr:hover td { background: var(--panel-2); }
 .req-table tr.selected td { background: var(--panel-3); }
 .req-table .cell-muted { color: var(--faint); font-size: 0.75rem; }
+.cell-ticket {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  color: var(--violet);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.ticket-ref {
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--faint);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
 
 .pill { padding: 0.18rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap; }
 .pill.approved { background: rgba(52, 211, 153, 0.14); color: var(--green); }

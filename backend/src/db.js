@@ -37,7 +37,19 @@ export async function initDb() {
       customer_response TEXT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+    CREATE SEQUENCE IF NOT EXISTS refund_ticket_seq;
   `);
+}
+
+/**
+ * Human-readable ticket numbers, e.g. RFD-2026-0042.
+ * Backed by a Postgres sequence so concurrent requests can never collide.
+ */
+export async function nextTicketId() {
+  const { rows } = await pool.query(
+    `SELECT 'RFD-' || to_char(now(), 'YYYY') || '-' || LPAD(nextval('refund_ticket_seq')::text, 4, '0') AS ticket`
+  );
+  return rows[0].ticket;
 }
 
 export async function seedIfEmpty() {

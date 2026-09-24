@@ -1,8 +1,7 @@
-import { randomUUID } from "node:crypto";
 import { evaluatePolicy, enforcePolicyOnLlmDecision } from "./policyEngine.js";
 import { getLlmProvider } from "./llm/index.js";
 import { POLICY } from "../data/policy.js";
-import { saveRefundRequest } from "../db.js";
+import { saveRefundRequest, nextTicketId } from "../db.js";
 
 /**
  * Orchestrates the full refund-request pipeline:
@@ -88,8 +87,9 @@ export async function processRefundRequest({ customer, order, message }) {
   }
 
   // ---- Step 4: persist with full audit trail --------------------------
+  const ticketId = await nextTicketId();
   const record = {
-    id: randomUUID(),
+    id: ticketId,
     customerId: customer.id,
     orderId: order.id,
     message,

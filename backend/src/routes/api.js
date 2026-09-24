@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { randomUUID } from "node:crypto";
 import { getCustomerWithOrders, listRefundRequests, getRefundRequest } from "../db.js";
 import { processRefundRequest } from "../services/refundService.js";
 import { POLICY } from "../data/policy.js";
